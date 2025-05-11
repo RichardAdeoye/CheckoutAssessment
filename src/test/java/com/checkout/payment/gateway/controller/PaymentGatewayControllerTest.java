@@ -53,7 +53,7 @@ class PaymentGatewayControllerTest {
   void whenPaymentWithIdDoesNotExistThen404IsReturned() throws Exception {
     mvc.perform(MockMvcRequestBuilders.get("/payment/" + UUID.randomUUID()))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("Page not found"));
+        .andExpect(jsonPath("$.message").value("Payment not found"));
   }
 
 
@@ -62,8 +62,8 @@ class PaymentGatewayControllerTest {
     String requestBody = """
          {
            "card_number": "4111111111111111",
-           "expiryMonth": 12,
-           "expiryYear": 2026,
+           "expiry_month": 12,
+           "expiry_year": 2026,
            "currency": "USD",
            "amount": 1050,
            "cvv": "123"
@@ -84,8 +84,8 @@ class PaymentGatewayControllerTest {
     String requestBody = """
     {
       "card_number": "4111111111111112",
-      "expiryMonth": 12,
-      "expiryYear": 2026,
+      "expiry_month": 12,
+      "expiry_year": 2026,
       "currency": "USD",
       "amount": 1050,
       "cvv": "123"
@@ -100,4 +100,124 @@ class PaymentGatewayControllerTest {
         .andExpect(jsonPath("$.cardNumberLastFour").value("1112"));
   }
 //opposite if its even
+
+  @Test
+  void whenInvalidCardNumberThenReturnBadRequest() throws Exception {
+    String requestBody = """
+    {
+      "card_number": "411",
+      "expiry_month": 12,
+      "expiry_year": 2026,
+      "currency": "USD",
+      "amount": 1050,
+      "cvv": "123"
+    }
+    """;
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(requestBody))
+        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("Rejected: Invalid card number"));
+  }
+
+  @Test
+  void whenExpiryMonthIsInvalidThenReturnBadRequest() throws Exception {
+    String requestBody = """
+    {
+      "card_number": "4111111111111111",
+      "expiry_month": 13,
+      "expiry_year": 2026,
+      "currency": "USD",
+      "amount": 1050,
+      "cvv": "123"
+    }
+    """;
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Rejected: Invalid expiry month"));
+  }
+
+  @Test
+  void whenCardIsExpiredThenReturnBadRequest() throws Exception { // can try make sure the date is always in future dynamically
+    String requestBody = """
+    {
+      "card_number": "4111111111111111",
+      "expiry_month": 12,
+      "expiry_year": 2020,
+      "currency": "USD",
+      "amount": 1050,
+      "cvv": "123"
+    }
+    """;
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Rejected: Card has expired"));
+  }
+
+  @Test
+  void whenCvvIsInvalidThenReturnBadRequest() throws Exception {
+
+    String requestBody = String.format("""
+        {
+          "card_number": "4111111111111111",
+          "expiry_month": 12,
+          "expiry_year": 2026,
+          "currency": "USD",
+          "amount": 1050,
+          "cvv": "12"
+        }
+        """);
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void whenUnsupportedCurrencyThenReturnBadRequest() throws Exception {
+    String requestBody = """
+      {
+        "card_number": "4111111111111111",
+        "expiry_month": 12,
+        "expiry_year": 2026,
+        "currency": "JPY",
+        "amount": 1050,
+        "cvv": "123"
+      }
+      """;
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Rejected: Unsupported currency JPY"));
+  }
+
+  @Test
+  void whenAmountIsZeroOrNegativeThenReturnBadRequest() throws Exception {
+    String requestBody = """
+      {
+        "card_number": "4111111111111111",
+        "expiry_month": 12,
+        "expiry_year": 2026,
+        "currency": "USD",
+        "amount": 0,
+        "cvv": "123"
+      }
+      """;
+
+    mvc.perform(MockMvcRequestBuilders.post("/payments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Rejected: Amount must be greater than 0"));
+  }
+
 }

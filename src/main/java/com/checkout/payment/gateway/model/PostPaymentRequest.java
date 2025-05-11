@@ -13,10 +13,11 @@ public class PostPaymentRequest implements Serializable {
   private int expiryYear;
   private String currency;
   private int amount;
-  private int cvv;
+  private String cvv;
 
  //Full Card number is required by the bank simulator to simulate real behaviour, it also must be a string as 0 can be lost if card number starts like that
   //Noticed the card number last four may not have been needed as it can be extracted from card number, thoughts?
+  // can have validation here potentially
   public String getCardNumber() {
     return cardNumber;
   }
@@ -57,11 +58,11 @@ public class PostPaymentRequest implements Serializable {
     this.amount = amount;
   }
 
-  public int getCvv() {
+  public String getCvv() {
     return cvv;
   }
 
-  public void setCvv(int cvv) {
+  public void setCvv(String cvv) {
     this.cvv = cvv;
   }
 
