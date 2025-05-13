@@ -5,6 +5,7 @@ import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.EventProcessingException;
 import com.checkout.payment.gateway.model.BankPaymentRequest;
 import com.checkout.payment.gateway.model.BankPaymentResponse;
+import com.checkout.payment.gateway.model.GetPaymentResponse;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
@@ -38,10 +39,22 @@ public class PaymentGatewayService {
     this.restTemplate = restTemplate;
   }
 
-  public PostPaymentResponse getPaymentById(UUID id) {
-    LOG.debug("Requesting access to payment with ID {}", id);
-    return paymentsRepository.get(id)
-        .orElseThrow(() -> new EventProcessingException("Payment not found", HttpStatus.NOT_FOUND));
+  public GetPaymentResponse getPaymentById(UUID id) {
+    PostPaymentResponse storedPayment = paymentsRepository.get(id)
+        .orElseThrow(() ->
+            new EventProcessingException("Payment not found", HttpStatus.NOT_FOUND));
+
+    GetPaymentResponse response = new GetPaymentResponse();
+
+    response.setId(storedPayment.getId());
+    response.setStatus(storedPayment.getStatus());
+    response.setCardNumberLastFour(storedPayment.getCardNumberLastFour());
+    response.setExpiryMonth(storedPayment.getExpiryMonth());
+    response.setExpiryYear(storedPayment.getExpiryYear());
+    response.setCurrency(storedPayment.getCurrency());
+    response.setAmount(storedPayment.getAmount());
+
+    return response;
   }
 
   public PostPaymentResponse processPayment(PostPaymentRequest paymentRequest) {

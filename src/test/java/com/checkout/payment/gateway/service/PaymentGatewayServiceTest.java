@@ -4,6 +4,7 @@ import com.checkout.payment.gateway.PaymentRequestValidator;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.EventProcessingException;
 import com.checkout.payment.gateway.model.BankPaymentResponse;
+import com.checkout.payment.gateway.model.GetPaymentResponse;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
@@ -129,7 +130,7 @@ class PaymentGatewayServiceTest {
 
     when(paymentsRepository.get(id)).thenReturn(Optional.of(stored));
 
-    PostPaymentResponse result = service.getPaymentById(id);
+    GetPaymentResponse result = service.getPaymentById(id);
 
     assertEquals(id, result.getId());
     assertEquals(PaymentStatus.AUTHORIZED, result.getStatus());
