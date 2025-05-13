@@ -65,7 +65,7 @@ class PaymentGatewayServiceTest {
 
     // Assert
     assertEquals(PaymentStatus.AUTHORIZED, response.getStatus());
-    assertEquals(1111, response.getCardNumberLastFour());
+    assertEquals("1111", response.getCardNumberLastFour());
     assertEquals("GBP", response.getCurrency());
     assertEquals(1050, response.getAmount());
   }
@@ -123,7 +123,7 @@ class PaymentGatewayServiceTest {
     PostPaymentResponse stored = new PostPaymentResponse();
     stored.setId(id);
     stored.setStatus(PaymentStatus.AUTHORIZED);
-    stored.setCardNumberLastFour(1111);
+    stored.setCardNumberLastFour("1111");
     stored.setCurrency("GBP");
     stored.setAmount(1050);
 

@@ -73,7 +73,8 @@ public class PaymentGatewayService {
       throw new EventProcessingException("Bank unavailable", HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    int lastFour = Integer.parseInt(paymentRequest.getCardNumber().substring(paymentRequest.getCardNumber().length() - 4));
+    String lastFour = paymentRequest.getCardNumber()
+        .substring(paymentRequest.getCardNumber().length() - 4);
 
     PostPaymentResponse result = new PostPaymentResponse();
     result.setId(UUID.randomUUID());
